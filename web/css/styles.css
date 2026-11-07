@@ -52,7 +52,7 @@ html.reduce-motion .aurora span, html.reduce-motion * { animation: none !importa
 .rail button svg { width: 22px; height: 22px; }
 .rail button:hover { background: var(--panel); color: var(--text); }
 .rail button.active { background: linear-gradient(160deg, rgba(94, 234, 212, .16), rgba(167, 139, 250, .12)); color: var(--text); }
-.app.bare { grid-template-columns: 0 1fr; }
+.app.bare { grid-template-columns: 1fr; }
 .app.bare .rail { display: none; }
 .view { position: relative; overflow-y: auto; overflow-x: hidden; }
 .screen { display: none; min-height: 100%; padding: 36px 44px 48px; animation: in .45s ease both; }
@@ -270,6 +270,7 @@ a.res:hover, button.res:hover { border-color: rgba(251, 113, 133, .5); transform
 }
 @media (max-width: 680px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 58px 1fr 64px; }
+  .app.bare { grid-template-rows: 58px 1fr; }
   .rail { grid-row: 3; flex-direction: row; justify-content: space-around; border-right: 0; border-top: 1px solid var(--line); padding: 6px; }
   .screen { padding: 24px 18px 40px; }
   .session-bottom { grid-template-columns: 1fr; }

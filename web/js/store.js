@@ -99,6 +99,8 @@ export const store = {
   },
 
   get id() { return meta?.id; },
+  get ready() { return !!cache; },
+  get locked() { return !!(meta?.hasPin && !cache); },
   get token() { return meta?.token; },
   get hasPin() { return !!meta?.hasPin; },
   get createdAt() { return meta?.createdAt; },

@@ -46,11 +46,14 @@ async function checkEngine() {
 const orbs = {};
 let current = null;
 function go(name) {
+  if (!store.ready && !['onboarding', 'lock', 'support'].includes(name)) {
+    name = store.locked ? 'lock' : 'onboarding';
+  }
   if (name === 'checkin') resetCheckin();
   if (name !== 'session' && current === 'session') session.kill();
   $$('.screen').forEach((s) => s.classList.toggle('active', s.id === `s-${name}`));
   const el = $(`s-${name}`);
-  $('app').classList.toggle('bare', el.hasAttribute('data-bare'));
+  $('app').classList.toggle('bare', el.hasAttribute('data-bare') || !store.ready);
   $$('#rail button').forEach((b) => b.classList.toggle('active', b.dataset.go === name || (name === 'checkin' || name === 'choose' || name === 'after') && b.dataset.go === 'home'));
   ['onb', 'home'].forEach((k) => orbs[k]?.[(name === 'onboarding' && k === 'onb') || (name === 'home' && k === 'home') ? 'start' : 'stop']());
   current = name;
@@ -222,11 +225,11 @@ function startSession(mode, phrase) {
     mode, minutes, phrase, prefs: prefs(),
     onDone: async (res) => {
       const d = new Date();
-      lastRecord = await store.add({
+      lastRecord = store.ready ? await store.add({
         ts: d.getTime(), hour: d.getHours(), weekday: (d.getDay() + 6) % 7,
         trigger: ci.trigger, intensity: ci.intensity, note: ci.noteToStore || undefined, aiLabel: ci.aiLabel || undefined,
         alt: mode, helped: null, after: null, quick: !ci.trigger, ...res,
-      });
+      }) : null;
       showAfter(res);
     },
   });
@@ -370,7 +373,7 @@ const calc = new Calculator($('calc'), {
   onExit: () => {
     $('calc').hidden = true; $('app').inert = false;
     document.title = 'PAUSA · Pausa somática'; $('favicon').href = 'assets/icon.svg';
-    go(store.records ? 'home' : 'onboarding');
+    go(store.ready ? 'home' : 'onboarding');
   },
 });
 function chameleon() {

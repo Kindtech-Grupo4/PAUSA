@@ -29,7 +29,7 @@ export class Orb {
     this.cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  start() { if (!this.raf) { const loop = () => { this.draw(); this.raf = requestAnimationFrame(loop); }; loop(); } }
+  start() { this.resize(); if (!this.raf) { const loop = () => { this.draw(); this.raf = requestAnimationFrame(loop); }; loop(); } }
   stop() { cancelAnimationFrame(this.raf); this.raf = null; }
   destroy() { this.stop(); this.ro.disconnect(); }
 
