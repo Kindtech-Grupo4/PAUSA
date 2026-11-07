@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+data/.perfil_ventana/
+data/*.tmp

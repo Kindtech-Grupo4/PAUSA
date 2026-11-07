@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+  <title>PAUSA · Indicadores Institucionales (k ≥ 20)</title>
+  <link rel="icon" href="assets/icon.svg">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { overflow-y: auto; }
+    .inst-wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 32px 24px 64px; }
+    .inst-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    .k-meter { margin: 16px 0; }
+    .k-bar { height: 12px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .k-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--teal)); transition: width .4s ease; }
+    .lock-box { border-color: rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .08); margin-bottom: 20px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+    .kpi { text-align: center; padding: 20px; }
+    .kpi b { display: block; font-size: 2.2rem; color: var(--teal); font-variant-numeric: tabular-nums; }
+    .kpi span { font-size: .82rem; color: var(--muted); }
+    .suppressed { color: var(--amber); font-size: .78rem; font-weight: 600; }
+    @media (max-width: 760px) { .kpi-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="inst-wrap">
+  <header class="inst-head">
+    <div>
+      <p class="eyebrow">Bienestar Universitario · Privacidad por Diseño</p>
+      <h1>Indicadores Agregados Anónimos</h1>
+      <p class="muted">Las instituciones financiadoras nunca acceden a registros individuales, notas ni métricas de tiempo en pantalla. Los datos se bloquean matemáticamente hasta alcanzar al menos <b>20 personas distintas</b> (<i>k</i>-anonimato ≥ 20) y las celdas con menos de 5 aportes se suprimen.</p>
+    </div>
+    <div class="row gap wrap">
+      <button class="btn primary small" id="sim-5">+ Simular 5 estudiantes</button>
+      <button class="btn glass small" id="sim-20">+ Simular 20 estudiantes</button>
+      <button class="btn danger small" id="sim-reset">Reiniciar contador</button>
+      <a class="btn ghost small" href="/">← Volver a PAUSA</a>
+    </div>
+  </header>
+
+  <div class="card k-meter">
+    <div class="row between">
+      <span id="k-status">Verificando umbral de <i>k</i>-anonimato…</span>
+      <b id="k-count">0 / 20 personas</b>
+    </div>
+    <div class="k-bar"><i id="k-fill" style="width:0%"></i></div>
+    <p class="muted small" id="k-detail" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="card lock-box" id="locked-card" hidden>
+    <h3>🔒 Reporte bloqueado por protección de identidad (<i>k</i> &lt; 20)</h3>
+    <p class="muted" id="locked-msg" style="margin:6px 0 0"></p>
+  </div>
+
+  <div id="unlocked-area" hidden>
+    <div class="kpi-grid">
+      <div class="card kpi"><b id="kpi-people">0</b><span>Personas participantes (umbral ≥ 20)</span></div>
+      <div class="card kpi"><b id="kpi-pauses">0</b><span>Pausas conscientes registradas</span></div>
+      <div class="card kpi"><b id="kpi-helped">—</b><span>Reportan que la pausa les ayudó</span></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3 class="label">Detonantes reportados (agregado)</h3>
+        <div class="hbars" id="inst-triggers"></div>
+      </div>
+      <div class="card">
+        <h3 class="label">Franjas horarias de mayor vulnerabilidad</h3>
+        <div class="vbars" id="inst-franjas"></div>
+      </div>
+    </div>
+    <p class="muted small" id="inst-note" style="margin-top:14px"></p>
+  </div>
+</div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+
+async function call(path, body) {
+  const r = await fetch(path, {
+    method: body ? 'POST' : 'GET',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return r.json();
+}
+
+function render(rep) {
+  const pct = Math.min(100, Math.round((rep.people / rep.k) * 100));
+  $('k-count').textContent = `${rep.people} / ${rep.k} personas`;
+  $('k-fill').style.width = `${pct}%`;
+  $('k-status').innerHTML = rep.locked
+    ? 'Umbral insuficiente · <b>Datos retenidos</b>'
+    : 'Umbral alcanzado · <b>Reporte agregado habilitado</b>';
+  $('k-detail').textContent = `Aportes reales desde la app: ${rep.real_people} · Simulados para demostración: ${rep.synthetic_people}`;
+
+  $('locked-card').hidden = !rep.locked;
+  $('unlocked-area').hidden = rep.locked;
+  if (rep.locked) {
+    $('locked-msg').textContent = rep.message;
+    return;
+  }
+
+  $('kpi-people').textContent = rep.people;
+  $('kpi-pauses').textContent = rep.pauses;
+  $('kpi-helped').textContent = rep.helped_rate != null ? `${rep.helped_rate}%` : '<5';
+
+  const trigEntries = Object.entries(rep.by_trigger || {});
+  const maxT = Math.max(1, ...trigEntries.map(([, v]) => (typeof v === 'number' ? v : 0)));
+  $('inst-triggers').innerHTML = trigEntries.map(([k, v]) => {
+    const num = typeof v === 'number';
+    const w = num ? Math.round((v / maxT) * 100) : 8;
+    return `<div class="hrow"><span>${k}</span><div class="track2"><i style="width:${w}%;opacity:${num ? 1 : .35}"></i></div>${num ? `<b>${v}</b>` : `<span class="suppressed">${v}</span>`}</div>`;
+  }).join('');
+
+  const frEntries = Object.entries(rep.by_franja || {});
+  const maxF = Math.max(1, ...frEntries.map(([, v]) => (typeof v === 'number' ? v : 0)));
+  $('inst-franjas').innerHTML = frEntries.map(([k, v]) => {
+    const num = typeof v === 'number';
+    const h = num ? Math.max(6, Math.round((v / maxF) * 120)) : 8;
+    return `<div class="col">${num ? `<b>${v}</b>` : `<span class="suppressed">${v}</span>`}<i style="height:${h}px;opacity:${num ? 1 : .35}"></i><span>${k}</span></div>`;
+  }).join('');
+
+  $('inst-note').textContent = rep.note || '';
+}
+
+async function refresh() { render(await call('/api/institucion')); }
+$('sim-5').onclick = async () => render(await call('/api/institucion/simular', { n: 5 }));
+$('sim-20').onclick = async () => render(await call('/api/institucion/simular', { n: 20 }));
+$('sim-reset').onclick = async () => render(await call('/api/institucion/reiniciar', {}));
+refresh();
+</script>
+</body>
+</html>

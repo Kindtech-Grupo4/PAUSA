@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; img-src 'self' data:; media-src 'self' mediastream: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>PAUSA · Pausa somática</title>
+  <link rel="icon" id="favicon" href="assets/icon.svg">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<div id="app" class="app">
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/icon.svg" alt="" width="30" height="30">
+      <span>PAUSA</span>
+    </div>
+    <div class="pills">
+      <span class="pill" id="engine-pill" title="Estado del motor local"><i class="dot"></i><b>Motor local…</b></span>
+      <span class="pill ok" id="net-pill" title="Peticiones a servidores externos medidas en esta sesión"><i class="dot"></i><b>0 conexiones externas</b></span>
+    </div>
+    <div class="top-actions">
+      <button class="btn help-btn" id="btn-help" data-go="support">Hablar con alguien</button>
+      <button class="icon-btn" id="btn-chameleon" title="Modo discreto (Esc Esc)" aria-label="Activar modo discreto">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect x="4" y="2.5" width="16" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="7" y="5.5" width="10" height="4" rx="1" fill="currentColor" opacity=".55"/><g fill="currentColor"><circle cx="8.5" cy="13" r="1.1"/><circle cx="12" cy="13" r="1.1"/><circle cx="15.5" cy="13" r="1.1"/><circle cx="8.5" cy="17" r="1.1"/><circle cx="12" cy="17" r="1.1"/><circle cx="15.5" cy="17" r="1.1"/></g></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="Secciones">
+    <button data-go="home" class="active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><span>Inicio</span></button>
+    <button data-go="patterns"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Mis patrones</span></button>
+    <button data-go="support"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>Apoyo</span></button>
+    <button data-go="privacy"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Privacidad</span></button>
+  </nav>
+
+  <main id="view" class="view">
+
+    <!-- 1 · BIENVENIDA Y PRIVACIDAD -->
+    <section class="screen" id="s-onboarding" data-bare>
+      <div class="onb">
+        <div class="onb-hero">
+          <canvas class="orb-canvas" id="orb-onb"></canvas>
+          <h1>Una pausa,<br><em>no un castigo.</em></h1>
+          <p class="lead">PAUSA te acompaña en el segundo exacto del impulso automático con tu propia respiración y tu cuerpo. Sin cuenta, sin rachas, sin juicio.</p>
+        </div>
+        <div class="onb-form card">
+          <div class="three">
+            <article><h3>Qué hace</h3><p>Te guía en una pausa somática de 10 s a 10 min y te ayuda a ver cuándo aparece el impulso.</p></article>
+            <article><h3>Qué no hace</h3><p>No diagnostica, no juzga, no bloquea, no conversa libremente ni reemplaza a un profesional.</p></article>
+            <article><h3>Qué guarda</h3><p>Solo hora, detonante, intensidad y la pausa elegida, cifrado en este equipo. Micrófono y cámara se procesan en memoria y nunca se graban.</p></article>
+          </div>
+          <label class="check"><input type="checkbox" id="onb-adult"><span>Declaro ser mayor de 18 años.</span></label>
+          <label class="switch"><input type="checkbox" id="onb-ai" checked><span class="track"></span><span><b>Usar asistente con IA</b><small>Sugiere etiquetas y ordena pausas. Puedes desactivarlo cuando quieras.</small></span></label>
+          <label class="switch"><input type="checkbox" id="onb-sensors" checked><span class="track"></span><span><b>Pausa bio-interactiva</b><small>Micrófono/cámara solo durante la pausa, procesados en memoria. Siempre hay modo táctil.</small></span></label>
+          <label class="field"><span>PIN opcional (4–6 dígitos) · protege tus registros y el modo discreto</span><input type="password" id="onb-pin" inputmode="numeric" maxlength="6" pattern="\d*" placeholder="Sin PIN"></label>
+          <p class="ai-note"><span class="tag ai">Asistente con IA</span> no diagnostica ni reemplaza a un profesional.</p>
+          <button class="btn primary big" id="onb-start" disabled>Empezar sin cuenta</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOQUEO CON PIN -->
+    <section class="screen" id="s-lock" data-bare>
+      <div class="lock card">
+        <img src="assets/icon.svg" alt="" width="54" height="54">
+        <h2>Tus registros están cifrados</h2>
+        <p class="muted">Ingresa tu PIN para descifrarlos en este equipo.</p>
+        <input type="password" id="lock-pin" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="PIN">
+        <p class="error" id="lock-error" hidden>PIN incorrecto. Nadie más puede recuperarlo.</p>
+        <button class="btn primary" id="lock-go">Desbloquear</button>
+        <button class="btn ghost small" id="lock-reset">Olvidé mi PIN · borrar todo y empezar de cero</button>
+      </div>
+    </section>
+
+    <!-- INICIO -->
+    <section class="screen" id="s-home">
+      <div class="home">
+        <div class="home-orb">
+          <canvas class="orb-canvas" id="orb-home"></canvas>
+          <p class="orb-caption" id="home-caption">Respira con la luz</p>
+        </div>
+        <div class="home-copy">
+          <p class="eyebrow" id="home-greeting">Hola</p>
+          <h1>¿Sientes un impulso<br>en automático?</h1>
+          <p class="lead">Detente un momento. No tienes que decidir nada todavía, solo volver a tu cuerpo.</p>
+          <div class="row gap">
+            <button class="btn primary big" data-go="checkin">Siento un impulso</button>
+            <button class="btn glass big" id="btn-quick">Pausa de 10 segundos</button>
+          </div>
+          <p class="hint"><kbd>Esc</kbd> <kbd>Esc</kbd> activa el modo discreto · <span class="tag ai">Asistente con IA</span> no diagnostica</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · CHECK-IN -->
+    <section class="screen" id="s-checkin">
+      <div class="narrow">
+        <p class="eyebrow">Paso 1 de 2 · Sin culpa, sin juicio</p>
+        <h2>¿Cómo estás ahora?</h2>
+        <h3 class="label">¿Qué está pasando?</h3>
+        <div class="chips" id="trigger-chips" role="radiogroup"></div>
+        <h3 class="label">Intensidad del impulso</h3>
+        <div class="intensity" id="intensity" role="radiogroup"></div>
+        <h3 class="label">Nota corta <small>(opcional · no escribas detalles explícitos)</small></h3>
+        <textarea id="note" maxlength="280" rows="3" placeholder="Ej.: no puedo dormir por el parcial de mañana"></textarea>
+        <div class="note-meta"><span id="note-count">0/280</span><span class="muted">Se cifra en tu equipo. Los enlaces se eliminan.</span></div>
+        <div class="suggestion card" id="suggestion" hidden></div>
+        <div class="row gap end">
+          <button class="btn ghost" data-go="home">Volver</button>
+          <button class="btn primary" id="checkin-next">Continuar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3a · ELEGIR PAUSA -->
+    <section class="screen" id="s-choose">
+      <div class="narrow wide">
+        <p class="eyebrow">Paso 2 de 2</p>
+        <h2>Elige tu pausa</h2>
+        <p class="muted" id="choose-sub"></p>
+        <div class="alts" id="alts"></div>
+        <div class="row gap between">
+          <div class="duration" id="duration" role="radiogroup" aria-label="Duración">
+            <span class="muted">Duración</span>
+            <button data-min="2">2 min</button><button data-min="5" class="on">5 min</button><button data-min="10">10 min</button>
+          </div>
+          <button class="btn ghost" data-go="checkin">Volver</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3b · SESIÓN SOMÁTICA (valor principal) -->
+    <section class="screen" id="s-session" data-bare>
+      <div class="session" id="session">
+        <div class="session-top">
+          <span class="tag" id="sess-mode">Respiración</span>
+          <span class="timer" id="sess-timer">0:00</span>
+          <button class="btn ghost small" id="sess-exit">Salir cuando quiera</button>
+        </div>
+        <div class="stage">
+          <canvas class="orb-canvas" id="orb-session"></canvas>
+          <div class="cue">
+            <p class="cue-main" id="cue-main">Prepárate</p>
+            <p class="cue-sub" id="cue-sub"></p>
+          </div>
+          <div class="tap-zone" id="tap-zone" hidden>Mantén pulsado aquí o la barra espaciadora</div>
+        </div>
+        <div class="session-bottom">
+          <div class="meter" id="sess-meter">
+            <div class="meter-row"><span>Señal de exhalación</span><div class="bar"><i id="meter-level"></i></div></div>
+            <div class="stats" id="sess-stats"></div>
+          </div>
+          <div class="controls">
+            <div class="segmented" id="sensor-switch" role="radiogroup" aria-label="Fuente de interacción">
+              <button data-src="mic">Micrófono</button><button data-src="touch">Táctil</button>
+            </div>
+            <label class="sens" id="sens-wrap">Sensibilidad <input type="range" id="sens" min="-6" max="6" step="1" value="0"></label>
+            <button class="icon-btn" id="sess-sound" title="Guía por sonido y voz" aria-label="Guía por sonido">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <p class="privacy-live" id="privacy-live"></p>
+        </div>
+        <div class="reach card" id="reach-card" hidden>
+          <p class="eyebrow">Frase sugerida <span class="tag ai">Asistente con IA</span></p>
+          <p class="phrase" id="reach-phrase"></p>
+          <div class="row gap">
+            <button class="btn primary" id="reach-copy">Copiar frase</button>
+            <a class="btn glass" id="reach-wa" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
+            <button class="btn ghost" id="reach-shuffle">Otra frase</button>
+          </div>
+          <p class="muted small">PAUSA no envía nada: tú eliges a quién y cuándo. Mientras esperas, respira con la luz.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3c · CIERRE -->
+    <section class="screen" id="s-after">
+      <div class="narrow center">
+        <p class="eyebrow" id="after-eyebrow">Pausa completada</p>
+        <h2 id="after-title">Recuperaste un momento para decidir con calma.</h2>
+        <p class="muted" id="after-stats"></p>
+        <h3 class="label">¿Cómo está el impulso ahora? <small>(opcional)</small></h3>
+        <div class="intensity" id="after-intensity" role="radiogroup"></div>
+        <h3 class="label">¿Te ayudó esta pausa? <small>(opcional)</small></h3>
+        <div class="chips center" id="after-helped">
+          <button data-v="si">Sí</button><button data-v="algo">Un poco</button><button data-v="no">No esta vez</button>
+        </div>
+        <div class="row gap center">
+          <button class="btn primary" id="after-save">Guardar y cerrar</button>
+          <button class="btn ghost" id="after-again">Otra pausa</button>
+        </div>
+        <p class="muted small">Cerrar PAUSA también es parte de la pausa. Vuelve a tu día.</p>
+      </div>
+    </section>
+
+    <!-- 4 · MIS PATRONES -->
+    <section class="screen" id="s-patterns">
+      <div class="narrow wide">
+        <div class="row between wrap">
+          <div><p class="eyebrow">Solo tú ves esto</p><h2>Mis patrones</h2></div>
+          <div class="row gap">
+            <button class="btn ghost small" id="demo-load">Cargar datos de demostración</button>
+            <button class="btn ghost small" id="demo-clear" hidden>Quitar datos de demo</button>
+          </div>
+        </div>
+        <div class="card insights" id="insights"></div>
+        <div class="grid2">
+          <div class="card"><h3 class="label">Por franja horaria</h3><div class="vbars" id="chart-franja"></div></div>
+          <div class="card"><h3 class="label">Por detonante</h3><div class="hbars" id="chart-trigger"></div></div>
+        </div>
+        <div class="card">
+          <div class="row between"><h3 class="label">Registro privado</h3><span class="muted small" id="rec-count"></span></div>
+          <div class="records" id="records"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · APOYO Y RECURSOS -->
+    <section class="screen" id="s-support">
+      <div class="narrow wide">
+        <div class="crisis card" id="crisis-banner" hidden>
+          <h2>Lo que escribiste merece atención de una persona.</h2>
+          <p>No estás solo/a. Este asistente no puede darte la ayuda que mereces en este momento, pero hay profesionales disponibles ahora mismo, gratis y de forma confidencial. Tu nota no se guardó.</p>
+        </div>
+        <p class="eyebrow">Mensaje prevalidado · sin compartir tus datos</p>
+        <h2>Hablar con alguien</h2>
+        <p class="muted">Pedir ayuda es una forma de cuidarte. Elige la vía que te resulte más cómoda.</p>
+        <div class="resources">
+          <a class="res card" href="tel:113"><span class="res-num">113</span><span><b>Línea 113 · opción 5</b><small>Salud mental MINSA · 24 h · gratuita y confidencial</small></span></a>
+          <a class="res card" href="tel:100"><span class="res-num">100</span><span><b>Línea 100</b><small>Violencia, acoso o abuso · MIMP · 24 h</small></span></a>
+          <a class="res card" href="tel:106"><span class="res-num">106</span><span><b>SAMU</b><small>Emergencia médica inmediata</small></span></a>
+          <div class="res card"><span class="res-num">U</span><span><b>Bienestar universitario</b><small>Psicología de tu universidad · atención sin costo para estudiantes</small></span></div>
+          <button class="res card" id="res-trust"><span class="res-num">♡</span><span><b>Una persona de confianza</b><small>Te damos una frase para empezar la conversación</small></span></button>
+        </div>
+        <p class="muted small">Números verificados para Perú (nov. 2026); revisar vigencia antes del piloto. PAUSA no registra que visitaste esta pantalla.</p>
+      </div>
+    </section>
+
+    <!-- PRIVACIDAD Y AJUSTES -->
+    <section class="screen" id="s-privacy">
+      <div class="narrow wide">
+        <p class="eyebrow">Tú tienes el control</p>
+        <h2>Privacidad y ajustes</h2>
+        <div class="grid2">
+          <div class="card stack">
+            <label class="switch"><input type="checkbox" data-setting="ai"><span class="track"></span><span><b>Asistente con IA</b><small>Apagado: solo registro y pausa con reglas fijas.</small></span></label>
+            <label class="switch"><input type="checkbox" data-setting="sensors"><span class="track"></span><span><b>Pausa bio-interactiva</b><small>Micrófono y cámara solo en la pausa, en memoria.</small></span></label>
+            <label class="switch"><input type="checkbox" data-setting="sound"><span class="track"></span><span><b>Guía por sonido</b><small>Tono suave que sube al inhalar y baja al exhalar.</small></span></label>
+            <label class="switch"><input type="checkbox" data-setting="voice"><span class="track"></span><span><b>Guía por voz</b><small>Accesible para lectores de pantalla y ojos cerrados.</small></span></label>
+            <label class="switch"><input type="checkbox" data-setting="reducedMotion"><span class="track"></span><span><b>Reducir movimiento</b><small>Animaciones mínimas.</small></span></label>
+            <label class="switch"><input type="checkbox" data-setting="largeText"><span class="track"></span><span><b>Texto grande</b><small>Aumenta el tamaño de toda la interfaz.</small></span></label>
+            <label class="switch"><input type="checkbox" data-setting="contribute"><span class="track"></span><span><b>Aportar a indicadores de mi institución</b><small>Solo detonante, franja y si ayudó. Visible únicamente con 20+ personas. <a href="/institucion" target="_blank">Ver vista institucional</a></small></span></label>
+          </div>
+          <div class="card stack">
+            <h3 class="label">Tus datos</h3>
+            <ul class="facts" id="facts"></ul>
+            <h3 class="label">PIN</h3>
+            <div class="row gap"><input type="password" id="pin-new" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4–6)"><button class="btn glass" id="pin-save">Guardar PIN</button><button class="btn ghost" id="pin-remove">Quitar</button></div>
+            <p class="muted small">Modo discreto: <kbd>Esc</kbd> <kbd>Esc</kbd>. Para volver, mantén pulsado <b>=</b> durante 1 segundo<span id="pin-exit-hint"></span>.</p>
+            <button class="btn danger" id="wipe">Borrar todo ahora</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODO CAMALEÓN: calculadora científica funcional -->
+<div class="calc" id="calc" hidden>
+  <div class="calc-bar"><span>Calculadora</span><span class="calc-mode">Científica</span></div>
+  <div class="calc-display"><div class="calc-expr" id="calc-expr"></div><div class="calc-out" id="calc-out">0</div></div>
+  <div class="calc-keys" id="calc-keys"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
